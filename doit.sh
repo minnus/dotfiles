@@ -4,14 +4,31 @@ set -e
 set -u
 set -o pipefail
 
+confirm () {
+  echo "run ?: $@"
+  select choice in yes no
+  do
+    if [ "$choice" = "yes" ]; then
+      break
+    elif [ "$choice" = "no" ]; then
+      return 0
+    fi
+  done
+  $@
+}
+
 # Git
+
+if ! [ -x "$(command -v git)" ]; then
+    confirm "sudo yum install git"
+fi
+
 if [ -x "$(command -v git)" ]; then
   git config --global user.name "Martins Innus"
   git config --global user.email "minnus@buffalo.edu"
   git config --global push.default current
 else
-  echo "Install Git before running"
-  exit 1
+  echo "Git not installed"
 fi
 
 # VIM
@@ -26,16 +43,16 @@ chmod 600 ~/.ssh/config
 
 # python
 if ! [ -x "$(command -v pygmentize)" ]; then
-  echo "sudo yum install python-pygments"
+  confirm "sudo yum install python-pygments"
 fi
 
 if ! [ -x "$(command -v pip)" ]; then
-  echo "sudo yum install python-pip"
-  echo "sudo pip install --upgrade pip"
+  confirm "sudo yum install python-pip"
+  confirm "sudo pip install --upgrade pip"
 fi
 
 if ! [ -x "$(command -v virtualenv)" ]; then
-  echo "sudo pip install virtualenv"
+  confirm "sudo pip install virtualenv"
 fi
 
 echo "Logout and log back in to see the changes"
